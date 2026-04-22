@@ -7,7 +7,7 @@ import { ThemedView } from "./themed-view";
 interface ChatCardProps {
   userName: string;
   lastMessage: string;
-  lastMessageTime: Date;
+  lastMessageTime: number;
   lastMessageFromYou?: boolean;
   unreadCount?: number;
   onPress?: () => void;
@@ -18,9 +18,9 @@ const pluralize = (count: number, singular: string, plural?: string) => {
   return `${count} ${plural ?? `${singular}s`}`;
 };
 
-const getTimeAgo = (date: Date) => {
+const getTimeAgo = (datetime: number) => {
   const now = Date.now();
-  const delta = Math.max(0, now - date.getTime());
+  const delta = Math.max(0, now - datetime);
 
   const seconds = Math.floor(delta / 1000);
   const minutes = Math.floor(seconds / 60);
