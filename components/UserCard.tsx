@@ -6,11 +6,12 @@ import { ThemedText } from "./themed-text";
 import { ThemedView } from "./themed-view";
 
 interface UserCardProps {
+  id: string;
   userName: string;
   email: string;
 }
 
-export function UserCard({ userName, email }: UserCardProps) {
+export function UserCard({ id, userName, email }: UserCardProps) {
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
   const tintColor = useThemeColor({}, "tint");
@@ -19,7 +20,14 @@ export function UserCard({ userName, email }: UserCardProps) {
   const initial = userName.charAt(0).toUpperCase();
 
   const handlePress = () => {
-    router.push("/chattingScreen");
+    router.push({
+      pathname: "/chattingScreen",
+      params: {
+        id,
+        userName,
+        email,
+      },
+    });
   };
 
   return (

@@ -3,28 +3,41 @@ import React, { useCallback, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { verticalScale } from "react-native-size-matters";
 
-import { InputField } from "../components/ui/InputField";
-import { PrimaryButton } from "../components/ui/PrimaryButton";
+import axios from "axios";
+import { InputField } from "../../components/ui/InputField";
+import { PrimaryButton } from "../../components/ui/PrimaryButton";
 
 const validateEmail = (value: string) => {
   const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
   return emailRegex.test(value);
 };
 
-export default function Login() {
+export default function SignUp() {
   const router = useRouter();
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({
+    username: "",
     email: "",
     password: "",
   });
+  const validateUsername = (value: string) =>
+    value.trim() ? "" : "Username is required.";
 
   const validatePassword = (value: string) => {
     if (!value) return "Password is required.";
     if (value.length < 8) return "Password must be at least 8 characters.";
     return "";
   };
+
+  const handleUsernameChange = useCallback(
+    (text: string) => {
+      setUsername(text);
+      setErrors((prev) => ({ ...prev, username: validateUsername(text) }));
+    },
+    [validateUsername],
+  );
 
   const handleEmailChange = useCallback((text: string) => {
     setEmail(text);
@@ -48,6 +61,7 @@ export default function Login() {
 
   const handleSubmit = useCallback(() => {
     const nextErrors = {
+      username: validateUsername(username),
       email: email.trim()
         ? validateEmail(email)
           ? ""
@@ -58,25 +72,60 @@ export default function Login() {
 
     setErrors(nextErrors);
 
-    if (nextErrors.email || nextErrors.password) {
+    if (nextErrors.username || nextErrors.email || nextErrors.password) {
       return;
     }
 
-    const payload = { email, password };
-    console.log("Login submit:", payload);
-    // TODO: handle login logic / navigation here
-  }, [email, password]);
+    const payload = { username, email, password };
+
+    let data = JSON.stringify({
+      name: username,
+      email: email,
+      password: password,
+    });
+
+    let config = {
+      method: "post",
+      maxBodyLength: Infinity,
+      url: "http://localhost:3000/signup",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: data,
+    };
+
+    axios
+      .request(config)
+      .then((response) => {
+        console.log(response.data);
+        router.push("/login");
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }, [username, email, password]);
 
   return (
     <View style={styles.screen}>
-      <Text style={styles.title}>Log in</Text>
+      <Text style={styles.title}>Sign up</Text>
 
       <View style={styles.form}>
+        <InputField
+          label="Username"
+          value={username}
+          onChangeText={handleUsernameChange}
+          placeholder="Enter your username"
+          error={errors.username}
+          autoCapitalize="none"
+          autoComplete="username"
+          returnKeyType="next"
+        />
+
         <InputField
           label="Email"
           value={email}
           onChangeText={handleEmailChange}
-          placeholder="Enter your email"
+          placeholder="Enter a valid email"
           error={errors.email}
           keyboardType="email-address"
           autoCapitalize="none"
@@ -96,16 +145,12 @@ export default function Login() {
           returnKeyType="done"
         />
 
-        <PrimaryButton
-          title="Log in"
-          // onPress={handleSubmit}
-          onPress={() => router.push("/(tabs)/home")}
-        />
+        <PrimaryButton title="Create account" onPress={handleSubmit} />
 
         <View style={styles.loginRow}>
-          <Text style={styles.subtitle}>Don’t have an account? </Text>
-          <Pressable onPress={() => router.push("/")}>
-            <Text style={styles.loginLink}>Sign up</Text>
+          <Text style={styles.subtitle}>Already have an account? </Text>
+          <Pressable onPress={() => router.push("/(auth)/login")}>
+            <Text style={styles.loginLink}>Login</Text>
           </Pressable>
         </View>
       </View>
